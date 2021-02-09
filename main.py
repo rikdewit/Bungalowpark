@@ -1,3 +1,4 @@
+import unittest
 # todo: convert collections to sets from lists
 
 class Park():
@@ -29,12 +30,13 @@ class Customer():
 class Reservation():
     id_counter = 0
 
-    def __init__(self, park, customer, people, options = None):
+    def __init__(self, park, customer, kind, people, options = None):
         self.id = Reservation.id_counter
         Reservation.id_counter += 1
         
         self.park = park
         self.customer = customer
+        self.kind = kind
         self.people = people
         self.options = options
         self.customer.reservations.append(self)
@@ -43,17 +45,19 @@ class Reservation():
 
     def submit(self):
         for place in self.park.places:
-            
-            if place.reserve(self):
-                self.places.append(place)
-                self.status = "APPROVED"
-                print("reserved place{} for Customer{} {}".format(place.id, self.customer.id, self.customer.name))
-                return True
+            if self.kind == place.__class__.__name__:
+                if place.reserve(self):
+
+                    self.places.append(place)
+                    self.status = "APPROVED"
+                    print("reserved place{} for Customer{} {} {}".format(place.id, self.customer.id, self.customer.name, self.kind))
+                    return True
         self.status = "REJECTED"
-        print("can't make reservation in place{} for Customer{} {}".format(place.id, self.customer.id, self.customer.name))
+        print("can't make reservation in place{} for Customer{} {} {}".format(place.id, self.customer.id, self.customer.name, self.kind))
         return False
 
     def export(self):
+        print(f"export{self.id}")
         f = open(f"{self.park}_{self.__class__.__name__}{self.id}.txt", "w")
         f.write(f"Park: {self.park}\n")
         f.write(f"Reservation: {self.__class__.__name__}{self.id}\n")
@@ -132,6 +136,8 @@ class Bungalow(Place):
         if not super().reserve(reservation):
             return False
 
+        if not reservation.options:
+            return True
         for option, value in reservation.options.items():
             if option == "byWater":
                 if value == True and not self.byWater:
@@ -154,13 +160,16 @@ class HotelRoom(Place):
         else:
             raise Exception("capacity of HotelRoom should be 1 or 2")
 
-        self.bedtype = bedtype
+        self.bedType = bedType
         self.amenities = amenities
         self.cost = 60 #Todo cost based number of people in reservation
 
     def reserve():
         if not super().reserve(reservation):
             return False
+
+        if not reservation.options:
+            return True
 
         for option, value in reservation.options.items():
             if option == "bedType":
@@ -171,19 +180,19 @@ class HotelRoom(Place):
 
 
            
-park = Park("veluwe")
-huis1 = Bungalow(200, 4, byWater=True, theme="Mario")
-# huis2 = TentArea(10)
+# park = Park("veluwe")
+# huis1 = Bungalow(200, 4, byWater=True, theme="Mario")
+# # huis2 = TentArea(10)
 
-park.add(huis1)
-# park.add(huis2)
+# park.add(huis1)
+# # park.add(huis2)
 
-piet = Customer("Piet")
-reservation1 = Reservation(park, piet, 4,options={"theme":"Mario","byWater":True})
-reservation1.submit()
-reservation1.export()
+# piet = Customer("Piet")
+# reservation1 = Reservation(park, piet, "HotelRoom", 4,options={"theme":"Mario","byWater":True})
+# reservation1.submit()
+# reservation1.export()
 
-print(piet)
+# print(piet)
 
 
 
