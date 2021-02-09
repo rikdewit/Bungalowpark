@@ -55,7 +55,7 @@ class Reservation():
 class Place():
     id_counter = 0
 
-    def __init__(self, area, capacity = 4):
+    def __init__(self, area, capacity):
         self.id = Place.id_counter
         Place.id_counter += 1
 
@@ -79,20 +79,50 @@ class Place():
 
 class TentArea(Place):
     def __init__(self, area):
-        super().__init__(area)
+        if area >= 9:
+            super().__init__(area, capacity = float("inf"))
+        else:
+            raise Exception("tentarea should be 9m^2 or more")
+
+        self.cost = 4*area
+
 
 class Bungalow(Place):
-    def __init__(self, area):
-        super().__init__(area)
+    def __init__(self, area = 100, capacity = 4, byWater=False, theme=None):
+        if capacity in (2,4,7):
+            if theme and capacity != 4:
+                raise Exception("Bungalows with a theme should have a capacity of 4")
+            super().__init__(area, capacity)
+        else:
+            raise Exception("capacity of Bungalow should be 2, 4 or 7")
+
+        self.byWater = byWater
+        self.theme = theme
+
+        if self.theme
+            self.cost = 110
+        elif capacity == 2:
+            self.cost = 50
+        elif capacity == 4:
+            self.cost = 80
+        elif capacity == 7:
+            self.cost = 140
+    
 
 class HotelRoom(Place):
-    def __init__(self, area):
-        super().__init__(area)
+    def __init__(self, area = 50, capacity = 2, bedtype = "single", amenities = []):
+        if capacity in (1,2):
+            super().__init__(area, capacity)
+        else:
+            raise Exception("capacity of HotelRoom should be 1 or 2")
 
+        self.bedtype = bedtype
+        self.amenities = amenities
+        self.cost = 60 #Todo cost based number of people in reservation
 
 park = Park()
-huis1 = Place(200, 2)
-huis2 = Place(200)
+huis1 = Bungalow(200, 2)
+huis2 = TentArea(10)
 
 park.add(huis1)
 park.add(huis2)
@@ -102,6 +132,7 @@ reservation1 = Reservation(park, piet, 4)
 reservation1.submit()
 
 print(piet)
+
 
 
 
