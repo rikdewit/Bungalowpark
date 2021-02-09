@@ -1,12 +1,17 @@
 # todo: convert collections to sets from lists
 
 class Park():
-    def __init__(self):
+    def __init__(self, name):
         self.day = 0
+        self.name = name
         self.places = []
 
     def add(self, place):
         self.places.append(place)
+
+    def __repr__(self):
+        return self.name
+
 
 class Customer():
     id_counter = 0
@@ -24,13 +29,14 @@ class Customer():
 class Reservation():
     id_counter = 0
 
-    def __init__(self, park, customer, people):
+    def __init__(self, park, customer, people, options = None):
         self.id = Reservation.id_counter
         Reservation.id_counter += 1
         
         self.park = park
         self.customer = customer
         self.people = people
+        self.options = options
         self.customer.reservations.append(self)
         self.status = "PENDING"
         self.places = []
@@ -47,7 +53,17 @@ class Reservation():
         print("can't make reservation in place{} for Customer{} {}".format(place.id, self.customer.id, self.customer.name))
         return False
 
-
+    def export(self):
+        f = open(f"{self.park}_{self.__class__.__name__}{self.id}.txt", "w")
+        f.write(f"Park: {self.park}\n")
+        f.write(f"Reservation: {self.__class__.__name__}{self.id}\n")
+        f.write(f"Customer: {self.customer.name}\n")
+        f.write("\n")
+        f.write(f"people: {self.people}\n")
+        f.write(f"places: {self.places}\n")
+        f.write(f"options: {self.options}\n")
+        f.write(f"reservation status: {self.status}\n")
+        f.close()
     def __repr__(self):
         return "{}{} ({} people in {}) {}".format(self.__class__.__name__, self.id,  self.people, self.places, self.status)
 
@@ -80,11 +96,15 @@ class Place():
 class TentArea(Place):
     def __init__(self, area):
         if area >= 9:
-            super().__init__(area, capacity = float("inf"))
+            super().__init__(area = 20, capacity = 4)
         else:
             raise Exception("tentarea should be 9m^2 or more")
 
         self.cost = 4*area
+
+    def reserve(self, reservation):
+        return super().reserve(reservation)
+
 
 
 class Bungalow(Place):
@@ -99,7 +119,7 @@ class Bungalow(Place):
         self.byWater = byWater
         self.theme = theme
 
-        if self.theme
+        if self.theme:
             self.cost = 110
         elif capacity == 2:
             self.cost = 50
@@ -107,11 +127,29 @@ class Bungalow(Place):
             self.cost = 80
         elif capacity == 7:
             self.cost = 140
+
+    def reserve(self, reservation):
+        if not super().reserve(reservation):
+            return False
+
+        for option, value in reservation.options.items():
+            if option == "byWater":
+                if value == True and not self.byWater:
+                    self.occupied = False
+                    return False
+
+            if option == "theme":
+                if value != self.theme:
+                    self.occupied = False
+                    return False
+        return True
     
 
 class HotelRoom(Place):
-    def __init__(self, area = 50, capacity = 2, bedtype = "single", amenities = []):
+    def __init__(self, area = 50, capacity = 2, bedType = "double", amenities = []):
         if capacity in (1,2):
+            if capacity == 1 and bedType == "double":
+                raise Exception("can't have a double bed in a room for one")
             super().__init__(area, capacity)
         else:
             raise Exception("capacity of HotelRoom should be 1 or 2")
@@ -120,16 +158,30 @@ class HotelRoom(Place):
         self.amenities = amenities
         self.cost = 60 #Todo cost based number of people in reservation
 
-park = Park()
-huis1 = Bungalow(200, 2)
-huis2 = TentArea(10)
+    def reserve():
+        if not super().reserve(reservation):
+            return False
+
+        for option, value in reservation.options.items():
+            if option == "bedType":
+                if value != self.bedType:
+                    self.occupied = False
+                    return False
+        return True
+
+
+           
+park = Park("veluwe")
+huis1 = Bungalow(200, 4, byWater=True, theme="Mario")
+# huis2 = TentArea(10)
 
 park.add(huis1)
-park.add(huis2)
+# park.add(huis2)
 
 piet = Customer("Piet")
-reservation1 = Reservation(park, piet, 4)
+reservation1 = Reservation(park, piet, 4,options={"theme":"Mario","byWater":True})
 reservation1.submit()
+reservation1.export()
 
 print(piet)
 
